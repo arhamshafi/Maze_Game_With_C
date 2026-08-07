@@ -5,6 +5,15 @@
 
 using namespace std;
 
+void gotoxy(int x, int y)
+{
+    COORD p;
+
+    p.X = x;
+    p.Y = y;
+
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), p);
+}
 void line(HANDLE h)
 {
     SetConsoleTextAttribute(h, 14);
@@ -12,7 +21,6 @@ void line(HANDLE h)
             "=============="
          << endl;
 }
-
 int menu(HANDLE h, int option)
 {
     SetConsoleTextAttribute(h, 10);
@@ -320,10 +328,6 @@ void Create_Maze(char maze[35][120], int playerRow, int playerCol)
     maze[29][85] = 'E';
     maze[32][40] = 'E';
 
-    // Player
-
-    maze[playerRow][playerCol] = 'P';
-
     // Exit Door
 
     maze[33][118] = 'D';
@@ -345,9 +349,6 @@ void print_Maze(HANDLE h, char maze[35][120])
 
             else if (maze[i][j] == '.')
                 SetConsoleTextAttribute(h, 15);
-
-            else if (maze[i][j] == 'P')
-                SetConsoleTextAttribute(h, 10);
 
             else if (maze[i][j] == '$')
                 SetConsoleTextAttribute(h, 14);
@@ -380,6 +381,13 @@ void Maze(HANDLE h)
     char maze[35][120];
     int playerRow = 1;
     int playerCol = 1;
+    int mazeStart_R;
+    int mazeStart_C = 0;
+    bool gameRunning = true;
+    int score = 0;
+    int lives = 3;
+    bool hasKey = false;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
 
     // Game Screen
 
@@ -399,13 +407,13 @@ void Maze(HANDLE h)
     cout << "\n      Mission : Find the Key, Collect Coins and Escape Alive." << endl << endl;
 
     SetConsoleTextAttribute(h, 14);
-    cout << "      Coins : 0/20";
+    cout << "      Coins : " << score << "/20";
 
     SetConsoleTextAttribute(h, 12);
-    cout << "        Lives : 3";
+    cout << "        Lives : " << lives;
 
     SetConsoleTextAttribute(h, 11);
-    cout << "        Key : No";
+    cout << "        Key : " << (hasKey ? "Yes" : "No");
 
     cout << endl << endl;
 
@@ -422,8 +430,115 @@ void Maze(HANDLE h)
 
     cout << endl;
 
+    GetConsoleScreenBufferInfo(h, &csbi); // "abhi cursor kahan hai? — pucha
+    mazeStart_R = csbi.dwCursorPosition.Y + 2;
+
     Create_Maze(maze, playerRow, playerCol);
     print_Maze(h, maze);
+
+    gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
+    SetConsoleTextAttribute(h, 10);
+    cout << 'P';
+
+    while (gameRunning)
+    {
+        int move = _getch();
+        char cell = maze[playerRow][playerCol];
+
+        // Purani Position Restore
+        gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
+
+        if (cell == 'E')
+            SetConsoleTextAttribute(h, 12);
+        else
+            SetConsoleTextAttribute(h, 15);
+
+        cout << cell;
+
+        // Arrow Keys Check
+        while (gameRunning)
+        {
+            int move = _getch();
+            char cell = maze[playerRow][playerCol];
+
+            // Purani Position Restore
+            gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
+
+            if (cell == 'E')
+                SetConsoleTextAttribute(h, 12);
+            else
+                SetConsoleTextAttribute(h, 15);
+
+            cout << cell;
+
+            // Arrow key ka second code lo
+            if (move == -32 || move == 224)
+            {
+
+                move = _getch();
+            }
+
+            switch (move)
+            {
+
+                case 'W':
+                case 'w':
+                case 72:
+                    if (maze[playerRow - 1][playerCol] != '#')
+                        playerRow--;
+                    gotoxy(40, mazeStart_R + 36);
+                    cout << "                                                                                          "
+                            " ";
+                    break;
+
+                case 'S':
+                case 's':
+                case 80:
+                    if (maze[playerRow + 1][playerCol] != '#')
+                        playerRow++;
+                    gotoxy(40, mazeStart_R + 36);
+                    cout << "                                                                                          "
+                            " ";
+                    break;
+
+                case 'A':
+                case 'a':
+                case 75:
+                    if (maze[playerRow][playerCol - 1] != '#')
+                        playerCol--;
+                    gotoxy(40, mazeStart_R + 36);
+                    cout << "                                                                                          "
+                            " ";
+                    break;
+
+                case 'D':
+                case 'd':
+                case 77:
+                    if (maze[playerRow][playerCol + 1] != '#')
+                        playerCol++;
+                    gotoxy(40, mazeStart_R + 36);
+                    cout << "                                                                                          "
+                            " ";
+                    break;
+
+                default:
+                    gotoxy(40, mazeStart_R + 36);
+                    SetConsoleTextAttribute(h, 12);
+                    cout << "Invalid Key! Use W A S D or Arrow Keys.      ";
+                    break;
+            }
+
+            // New Position Draw
+            gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
+            SetConsoleTextAttribute(h, 10);
+            cout << 'P';
+        }
+
+        // New Position Draw
+        gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
+        SetConsoleTextAttribute(h, 10);
+        cout << 'P';
+    }
 }
 void GameStart(HANDLE h)
 {
