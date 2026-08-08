@@ -368,6 +368,67 @@ void print_Maze(HANDLE h, char maze[35][120])
 
     SetConsoleTextAttribute(h, 15);
 }
+int playAgainMenu(HANDLE h)
+{
+    int choice;
+
+    SetConsoleTextAttribute(h, 9);
+    line(h);
+
+    SetConsoleTextAttribute(h, 11);
+    cout << "\n\n";
+    cout << "     ####    #        ##    #   #     ##     ####    ##   # #    #\n";
+    cout << "     #   #   #       #  #    # #     #  #   #       #  #  # ##   #\n";
+    cout << "     ####    #      #    #    #     #    #  #  ##  #    # # # #  #\n";
+    cout << "     #       #      ######    #     ######  #   #  ###### # #  # #\n";
+    cout << "     #       #      #    #    #     #    #  #   #  #    # # #   ##\n";
+    cout << "     #       ###### #    #    #     #    #   ####  #    # # #    #\n";
+
+    cout << "\n\n";
+    SetConsoleTextAttribute(h, 9);
+    line(h);
+    cout << endl;
+
+    SetConsoleTextAttribute(h, 10);
+    cout << "                        [1] Play Again" << endl;
+
+    cout << endl;
+
+    SetConsoleTextAttribute(h, 12);
+    cout << "                        [0] Exit" << endl;
+
+    cout << endl;
+
+    SetConsoleTextAttribute(h, 9);
+    line(h);
+    cout << endl;
+
+    SetConsoleTextAttribute(h, 15);
+    cout << "      Enter Your Choice : ";
+    cin >> choice;
+
+    while (cin.fail() || (choice != 0 && choice != 1))
+    {
+        if (cin.fail())
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            SetConsoleTextAttribute(h, 12);
+            cout << "\n      Invalid Input! Please enter numbers only\n";
+        }
+        else
+        {
+            SetConsoleTextAttribute(h, 12);
+            cout << "\n      Invalid Choice! Please Enter 0 or 1\n";
+        }
+
+        SetConsoleTextAttribute(h, 15);
+        cout << "\n      Enter Your Choice : ";
+        cin >> choice;
+    }
+
+    return choice;
+}
 void Maze(HANDLE h)
 {
     char maze[35][120];
@@ -600,7 +661,7 @@ void Maze(HANDLE h)
                 SetConsoleTextAttribute(h, 15);
                 cout << "\n      PROJECT PRESENTATION COMPLETED" << endl;
 
-                Sleep(4000);
+                return;
             }
         }
         else if (maze[playerRow][playerCol] == '$')
@@ -697,7 +758,7 @@ void Maze(HANDLE h)
                 cout << "\n      PROJECT PRESENTATION COMPLETED" << endl;
 
                 gameRunning = false;
-                Sleep(4000);
+                return;
             }
             else
             {
@@ -715,12 +776,6 @@ void Maze(HANDLE h)
             cout << 'P';
         }
     }
-}
-
-void GameStart(HANDLE h)
-{
-    loading(h);
-    Maze(h);
 }
 void ExitGame(HANDLE h)
 {
@@ -760,6 +815,17 @@ void ExitGame(HANDLE h)
     line(h);
 
     Sleep(5000);
+}
+
+void GameStart(HANDLE h)
+{
+    do
+    {
+        loading(h);
+        Maze(h);
+    } while (playAgainMenu(h) == 1);
+
+    ExitGame(h);
 }
 
 int main()
