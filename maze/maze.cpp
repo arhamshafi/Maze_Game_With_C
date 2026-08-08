@@ -1,4 +1,5 @@
 #include <conio.h>
+#include <ctime>
 #include <iostream>
 #include <limits>
 #include <windows.h>
@@ -103,9 +104,6 @@ int menu(HANDLE h, int option)
 
     SetConsoleTextAttribute(h, 11);
     cout << "      D = Exit Door" << endl;
-
-    SetConsoleTextAttribute(h, 4);
-    cout << "      L = Lives" << endl;
 
     cout << endl;
 
@@ -369,12 +367,6 @@ void print_Maze(HANDLE h, char maze[35][120])
     }
 
     SetConsoleTextAttribute(h, 15);
-
-    // switch (move)
-    // {
-    //     case 'w':
-    //     case 'W':
-    // }
 }
 void Maze(HANDLE h)
 {
@@ -383,15 +375,20 @@ void Maze(HANDLE h)
     int playerCol = 1;
     int mazeStart_R;
     int mazeStart_C = 0;
-    bool gameRunning = true;
     int score = 0;
     int lives = 3;
     bool hasKey = false;
+    bool gameRunning = true;
+    int scoreRow;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
 
     // Game Screen
 
     system("cls");
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(h, &cursorInfo);
+    cursorInfo.bVisible = false;
+    SetConsoleCursorInfo(h, &cursorInfo);
 
     SetConsoleTextAttribute(h, 9);
     line(h);
@@ -406,14 +403,19 @@ void Maze(HANDLE h)
     SetConsoleTextAttribute(h, 15);
     cout << "\n      Mission : Find the Key, Collect Coins and Escape Alive." << endl << endl;
 
+    GetConsoleScreenBufferInfo(h, &csbi);
+    scoreRow = csbi.dwCursorPosition.Y + 1;
     SetConsoleTextAttribute(h, 14);
-    cout << "      Coins : " << score << "/20";
+    gotoxy(17, scoreRow);
+    cout << "Coins : " << score << "/18";
 
     SetConsoleTextAttribute(h, 12);
-    cout << "        Lives : " << lives;
+    gotoxy(35, scoreRow);
+    cout << "Lives : " << lives << "/3";
 
     SetConsoleTextAttribute(h, 11);
-    cout << "        Key : " << (hasKey ? "Yes" : "No");
+    gotoxy(50, scoreRow);
+    cout << "Key : " << (hasKey ? "Yes" : "No");
 
     cout << endl << endl;
 
@@ -440,6 +442,9 @@ void Maze(HANDLE h)
     SetConsoleTextAttribute(h, 10);
     cout << 'P';
 
+    time_t startTime = time(0);
+
+    // Arrow Keys Check
     while (gameRunning)
     {
         int move = _getch();
@@ -450,96 +455,268 @@ void Maze(HANDLE h)
 
         if (cell == 'E')
             SetConsoleTextAttribute(h, 12);
+        else if (cell == 'D')
+            SetConsoleTextAttribute(h, 13);
         else
             SetConsoleTextAttribute(h, 15);
 
         cout << cell;
 
-        // Arrow Keys Check
-        while (gameRunning)
+        // Arrow key ka second code lo
+        if (move == -32 || move == 224)
         {
-            int move = _getch();
-            char cell = maze[playerRow][playerCol];
 
-            // Purani Position Restore
-            gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
+            move = _getch();
+        }
 
-            if (cell == 'E')
+        switch (move)
+        {
+
+            case 'W':
+            case 'w':
+            case 72:
+                if (maze[playerRow - 1][playerCol] != '#')
+                    playerRow--;
+                gotoxy(40, mazeStart_R + 36);
+                cout << "                                                                                          "
+                        " ";
+                break;
+
+            case 'S':
+            case 's':
+            case 80:
+                if (maze[playerRow + 1][playerCol] != '#')
+                    playerRow++;
+                gotoxy(40, mazeStart_R + 36);
+                cout << "                                                                                          "
+                        " ";
+                break;
+
+            case 'A':
+            case 'a':
+            case 75:
+                if (maze[playerRow][playerCol - 1] != '#')
+                    playerCol--;
+                gotoxy(40, mazeStart_R + 36);
+                cout << "                                                                                          "
+                        " ";
+                break;
+
+            case 'D':
+            case 'd':
+            case 77:
+                if (maze[playerRow][playerCol + 1] != '#')
+                    playerCol++;
+                gotoxy(40, mazeStart_R + 36);
+                cout << "                                                                                          "
+                        " ";
+                break;
+
+            default:
+                gotoxy(40, mazeStart_R + 36);
                 SetConsoleTextAttribute(h, 12);
-            else
+                cout << "Invalid Key! Use W A S D or Arrow Keys.      ";
+                break;
+        }
+
+        // New Position Check
+
+        if (maze[playerRow][playerCol] == 'E')
+        {
+            lives--;
+            SetConsoleTextAttribute(h, 12);
+            gotoxy(35, scoreRow);
+            cout << "Lives : " << lives << "/3";
+            if (lives == 0)
+            {
+                gameRunning = false;
+
+                time_t endTime = time(0);
+                int timeTaken = (int)difftime(endTime, startTime);
+                int minutes = timeTaken / 60;
+                int seconds = timeTaken % 60;
+
+                system("cls");
+
+                SetConsoleTextAttribute(h, 12);
+                line(h);
+
+                cout << "\n\n";
+                cout << "                    ####    ##    #    #  ####     ####  #    # ###### #####\n";
+                cout << "                   #    #  #  #   ##  ## #    #   #    # #    # #      #    #\n";
+                cout << "                   #      #    #  # ## # #         #      #    # #####  #    #\n";
+                cout << "                   #  ### ###### #    # #  ###     #  ### #    # #      #####\n";
+                cout << "                   #    # #    # #    # #    #     #    #  #  #  #      #   #\n";
+                cout << "                    ####  #    # #    #  ####       ####    ##   ###### #    #\n";
+
+                cout << "\n\n";
+                SetConsoleTextAttribute(h, 12);
+                line(h);
+
+                SetConsoleTextAttribute(h, 14);
+                cout << "\n      You were caught in the Lost Temple... your journey ends here.\n" << endl;
+
                 SetConsoleTextAttribute(h, 15);
+                cout << "      -------------------------------------------------" << endl;
+                SetConsoleTextAttribute(h, 14);
+                cout << "      Coins Collected   : " << score << " / 20" << endl;
+                SetConsoleTextAttribute(h, 12);
+                cout << "      Lives Remaining   : 0 / 3" << endl;
+                SetConsoleTextAttribute(h, 11);
+                cout << "      Time Survived     : " << minutes << "m " << seconds << "s" << endl;
+                SetConsoleTextAttribute(h, 15);
+                cout << "      -------------------------------------------------" << endl;
 
-            cout << cell;
+                cout << endl;
+                SetConsoleTextAttribute(h, 12);
+                line(h);
+                SetConsoleTextAttribute(h, 11);
+                cout << "\n      PROJECT TEAM" << endl;
 
-            // Arrow key ka second code lo
-            if (move == -32 || move == 224)
-            {
+                SetConsoleTextAttribute(h, 15);
+                cout << "      ----------------------------------------" << endl;
+                cout << "      Muhammad Arham Shafi Butt" << endl;
+                cout << "      Yashfa Arfan Butt" << endl;
+                cout << "      Seerat Fatima Butt" << endl;
 
-                move = _getch();
+                cout << endl;
+
+                cout << "      Department : BS / ADP ITM" << endl;
+                cout << "      Course     : Programming Fundamentals" << endl;
+                cout << "      Semester   : Spring 2026" << endl;
+                cout << "      Submitted To: Ms. Malaika Pasha" << endl;
+
+                cout << endl;
+
+                SetConsoleTextAttribute(h, 10);
+                cout << "      Thank you for playing Maze Escape!" << endl;
+                cout << "      Thank you for your time and attention." << endl;
+
+                cout << endl;
+
+                SetConsoleTextAttribute(h, 9);
+                line(h);
+
+                SetConsoleTextAttribute(h, 15);
+                cout << "\n      PROJECT PRESENTATION COMPLETED" << endl;
+
+                Sleep(4000);
             }
+        }
+        else if (maze[playerRow][playerCol] == '$')
+        {
+            score++;
+            maze[playerRow][playerCol] = '.';
+            gotoxy(17, scoreRow);
+            SetConsoleTextAttribute(h, 14);
+            cout << "Coins : " << score << "/18";
+        }
+        else if (maze[playerRow][playerCol] == 'K')
+        {
+            hasKey = true;
+            maze[playerRow][playerCol] = '.';
+            SetConsoleTextAttribute(h, 11);
+            gotoxy(50, scoreRow);
+            cout << "Key : " << (hasKey ? "Yes" : "No");
+        }
+        else if (maze[playerRow][playerCol] == 'D')
+        {
 
-            switch (move)
+            ////////////////////////////////////////////////////////
+            if (hasKey)
             {
+                time_t endTime = time(0);
+                int timeTaken = (int)difftime(endTime, startTime);
+                int minutes = timeTaken / 60;
+                int seconds = timeTaken % 60;
 
-                case 'W':
-                case 'w':
-                case 72:
-                    if (maze[playerRow - 1][playerCol] != '#')
-                        playerRow--;
-                    gotoxy(40, mazeStart_R + 36);
-                    cout << "                                                                                          "
-                            " ";
-                    break;
+                system("cls");
 
-                case 'S':
-                case 's':
-                case 80:
-                    if (maze[playerRow + 1][playerCol] != '#')
-                        playerRow++;
-                    gotoxy(40, mazeStart_R + 36);
-                    cout << "                                                                                          "
-                            " ";
-                    break;
+                SetConsoleTextAttribute(h, 9);
+                line(h);
 
-                case 'A':
-                case 'a':
-                case 75:
-                    if (maze[playerRow][playerCol - 1] != '#')
-                        playerCol--;
-                    gotoxy(40, mazeStart_R + 36);
-                    cout << "                                                                                          "
-                            " ";
-                    break;
+                SetConsoleTextAttribute(h, 10);
+                cout << "\n\n";
+                cout << "                          #     #  ####  #    #     #    #  #  #    #\n";
+                cout << "                           #   #  #    # #    #     #    #  #  ##   #\n";
+                cout << "                            # #   #    # #    #     #    #  #  # #  #\n";
+                cout << "                             #    #    # #    #     # ## #  #  #  # #\n";
+                cout << "                             #    #    # #    #     ##  ##  #  #   ##\n";
+                cout << "                             #     ####   ####      #    #  #  #    #\n";
 
-                case 'D':
-                case 'd':
-                case 77:
-                    if (maze[playerRow][playerCol + 1] != '#')
-                        playerCol++;
-                    gotoxy(40, mazeStart_R + 36);
-                    cout << "                                                                                          "
-                            " ";
-                    break;
+                cout << "\n\n";
+                SetConsoleTextAttribute(h, 9);
+                line(h);
 
-                default:
-                    gotoxy(40, mazeStart_R + 36);
-                    SetConsoleTextAttribute(h, 12);
-                    cout << "Invalid Key! Use W A S D or Arrow Keys.      ";
-                    break;
+                SetConsoleTextAttribute(h, 14);
+                cout << "\n      CONGRATULATIONS! You escaped the Lost Temple with the treasure!\n" << endl;
+
+                SetConsoleTextAttribute(h, 15);
+                cout << "      -------------------------------------------------" << endl;
+                SetConsoleTextAttribute(h, 14);
+                cout << "      Coins Collected   : " << score << " / 18" << endl;
+                SetConsoleTextAttribute(h, 12);
+                cout << "      Lives Remaining   : " << lives << " / 3" << endl;
+                SetConsoleTextAttribute(h, 11);
+                cout << "      Time Taken        : " << minutes << "m " << seconds << "s" << endl;
+                SetConsoleTextAttribute(h, 15);
+                cout << "      -------------------------------------------------" << endl;
+
+                cout << endl;
+                SetConsoleTextAttribute(h, 9);
+                line(h);
+
+                SetConsoleTextAttribute(h, 11);
+                cout << "\n      PROJECT TEAM" << endl;
+
+                SetConsoleTextAttribute(h, 15);
+                cout << "      ----------------------------------------" << endl;
+                cout << "      Muhammad Arham Shafi Butt" << endl;
+                cout << "      Yashfa Arfan Butt" << endl;
+                cout << "      Seerat Fatima Butt" << endl;
+
+                cout << endl;
+
+                cout << "      Department : BS / ADP ITM" << endl;
+                cout << "      Course     : Programming Fundamentals" << endl;
+                cout << "      Semester   : Spring 2026" << endl;
+                cout << "      Submitted To: Ms. Malaika Pasha" << endl;
+
+                cout << endl;
+
+                SetConsoleTextAttribute(h, 10);
+                cout << "      Thank you for playing Maze Escape!" << endl;
+                cout << "      Thank you for your time and attention." << endl;
+
+                cout << endl;
+
+                SetConsoleTextAttribute(h, 9);
+                line(h);
+
+                SetConsoleTextAttribute(h, 15);
+                cout << "\n      PROJECT PRESENTATION COMPLETED" << endl;
+
+                gameRunning = false;
+                Sleep(4000);
             }
+            else
+            {
+                gotoxy(40, mazeStart_R + 36);
+                SetConsoleTextAttribute(h, 12);
+                cout << "First collect the key!                              ";
+            }
+        }
 
-            // New Position Draw
+        if (gameRunning)
+        {
+            // New Draw
             gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
             SetConsoleTextAttribute(h, 10);
             cout << 'P';
         }
-
-        // New Position Draw
-        gotoxy(mazeStart_C + playerCol, mazeStart_R + playerRow);
-        SetConsoleTextAttribute(h, 10);
-        cout << 'P';
     }
 }
+
 void GameStart(HANDLE h)
 {
     loading(h);
