@@ -1,3 +1,11 @@
+
+// Muhammad Arham Shafi Butt
+
+// Yashfa Arfan Butt
+// Seerat Butt
+
+// =====================================
+
 #include <conio.h>
 #include <ctime>
 #include <iostream>
@@ -585,6 +593,7 @@ void Maze(HANDLE h)
         if (maze[playerRow][playerCol] == 'E')
         {
             lives--;
+            Beep(250, 500);
             SetConsoleTextAttribute(h, 12);
             gotoxy(35, scoreRow);
             cout << "Lives : " << lives << "/3";
@@ -667,6 +676,7 @@ void Maze(HANDLE h)
         else if (maze[playerRow][playerCol] == '$')
         {
             score++;
+            Beep(1000, 120);
             maze[playerRow][playerCol] = '.';
             gotoxy(17, scoreRow);
             SetConsoleTextAttribute(h, 14);
