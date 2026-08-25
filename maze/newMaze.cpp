@@ -1,4 +1,3 @@
-
 // Muhammad Arham Shafi Butt
 
 // Yashfa Arfan Butt
@@ -22,6 +21,34 @@ void gotoxy(int x, int y)
     p.Y = y;
 
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), p);
+}
+
+// Console ka size fix kar deta hai (buffer + window) taake zoom in/out ya
+// resize karne se maze ki grid kharab na ho. Ye sirf ek dafa, program start
+// hote hi, call hoga.
+void SetupConsole(HANDLE h)
+{
+    SetConsoleTitleA("Maze Escape - The Lost Temple");
+
+    // Chota window rakh k pehle buffer bara karo (warna SetConsoleScreenBufferSize
+    // fail ho sakti hai agar window buffer se bari ho).
+    SMALL_RECT shrink = {0, 0, 1, 1};
+    SetConsoleWindowInfo(h, TRUE, &shrink);
+
+    COORD bufferSize = {130, 60};
+    SetConsoleScreenBufferSize(h, bufferSize);
+
+    SMALL_RECT windowSize = {0, 0, 129, 45};
+    SetConsoleWindowInfo(h, TRUE, &windowSize);
+
+    // User ko manually resize/maximize karne se roko taake grid align rahe.
+    HWND console = GetConsoleWindow();
+    if (console != NULL)
+    {
+        LONG style = GetWindowLong(console, GWL_STYLE);
+        style &= ~(WS_MAXIMIZEBOX | WS_SIZEBOX);
+        SetWindowLong(console, GWL_STYLE, style);
+    }
 }
 void line(HANDLE h)
 {
@@ -443,7 +470,7 @@ void Maze(HANDLE h)
     int playerRow = 1;
     int playerCol = 1;
     int mazeStart_R;
-    int mazeStart_C = 0;
+    int mazeStart_C;
     int score = 0;
     int lives = 3;
     bool hasKey = false;
@@ -473,7 +500,7 @@ void Maze(HANDLE h)
     cout << "\n      Mission : Find the Key, Collect Coins and Escape Alive." << endl << endl;
 
     GetConsoleScreenBufferInfo(h, &csbi);
-    scoreRow = csbi.dwCursorPosition.Y + 1; // Row
+    scoreRow = csbi.dwCursorPosition.Y + 1;
     SetConsoleTextAttribute(h, 14);
     gotoxy(17, scoreRow);
     cout << "Coins : " << score << "/18";
@@ -503,6 +530,7 @@ void Maze(HANDLE h)
 
     GetConsoleScreenBufferInfo(h, &csbi); // "abhi cursor kahan hai? — pucha
     mazeStart_R = csbi.dwCursorPosition.Y + 2;
+    mazeStart_C = csbi.dwCursorPosition.X; // maze hamesha isi column se print hoga (auto)
 
     Create_Maze(maze, playerRow, playerCol);
     print_Maze(h, maze);
@@ -605,8 +633,6 @@ void Maze(HANDLE h)
                 int timeTaken = (int)difftime(endTime, startTime);
                 int minutes = timeTaken / 60;
                 int seconds = timeTaken % 60;
-                cursorInfo.bVisible = true;
-                SetConsoleCursorInfo(h, &cursorInfo);
 
                 system("cls");
 
@@ -702,8 +728,6 @@ void Maze(HANDLE h)
                 int timeTaken = (int)difftime(endTime, startTime);
                 int minutes = timeTaken / 60;
                 int seconds = timeTaken % 60;
-                cursorInfo.bVisible = true;
-                SetConsoleCursorInfo(h, &cursorInfo);
 
                 system("cls");
 
@@ -848,6 +872,8 @@ int main()
     int option;
 
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetupConsole(h);
+
     cout << "\n\n";
 
     line(h);
