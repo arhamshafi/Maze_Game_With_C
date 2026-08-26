@@ -215,9 +215,13 @@ void Create_Maze(char maze[35][120], int playerRow, int playerCol)
 
     for (int i = 0; i < 35; i++)
     {
+
         for (int j = 0; j < 120; j++)
         {
             maze[i][j] = '.';
+            // .......................
+            // .......................
+            // .......................
         }
     }
 
@@ -225,8 +229,11 @@ void Create_Maze(char maze[35][120], int playerRow, int playerCol)
 
     for (int i = 0; i < 35; i++)
     {
-        maze[i][0] = '#';
-        maze[i][119] = '#';
+        maze[i][0] = '#';   // col fixed
+        maze[i][119] = '#'; // col fixed
+        // #.....................#
+        // #.....................#
+        // #.....................#
     }
 
     for (int j = 0; j < 120; j++)
@@ -439,7 +446,7 @@ int playAgainMenu(HANDLE h)
 }
 void Maze(HANDLE h)
 {
-    char maze[35][120];
+    char maze[35][120]; // maze[row][col] - 2D Array
     int playerRow = 1;
     int playerCol = 1;
     int mazeStart_R;
